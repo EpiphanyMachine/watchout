@@ -24,8 +24,12 @@ var render = function (enemyArray) {
   // enemyArray = enemyArray || createEnemies();
   enemies = gameBoard.selectAll('circle.enemy').data(enemyArray, function(d){return d.id;});
   enemies
-    .attr('cx', function(d){return axis.x(d.x);})
-    .attr('cy', function(d){return axis.y(d.y);});
+    .transition()
+      .duration(500)
+      .attr('r', 10)
+    .transition()
+      .duration(2000)
+      .tween('custom', tweenWithCollisionDetection);
 };
 
 render(createEnemies());
@@ -39,11 +43,30 @@ enemies.enter()
 
 enemies.exit().remove();
 
+var tweenWithCollisionDetection = function (endData) {
+  var enemy = d3.select(this);
+  var startPos = {
+    x: parseFloat(enemy.attr('cx')),
+    y: parseFloat(enemy.attr('cy'))
+  };
+  var endPos = {
+    x: axis.x(endData.x),
+    y: axis.y(endData.y)
+  };
+  return function (t) {
+    var enemyNextPos= {
+      x: startPos.x + (endPos.x - startPos.x)*t,
+      y: startPos.y + (endPos.y - startPos.y)*t
+    };
+    enemy.attr('cx', enemyNextPos.x)
+      .attr('cy', enemyNextPos.y);
+  };
+};
+
 
 var gameTurn = function () {
   console.log('gameturn!');
-  newEnemies = createEnemies();
-  render(newEnemies);
+  render(createEnemies());
 
 };
 
