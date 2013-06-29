@@ -1,3 +1,4 @@
+//player can go out of bounds, future update should correct this
 var gameOptions = {
   height: 450,
   width: 700,
@@ -5,7 +6,10 @@ var gameOptions = {
   padding: 20
 };
 
-//place gameStats here when they are needed
+var gameStats = {
+  score: 0,
+  bestScore: 0
+};
 
 var axis = {
   x: d3.scale.linear().domain([0,100]).range([0,gameOptions.width]),
@@ -35,7 +39,6 @@ var createEnemies = function(){ return _.range(0,gameOptions.nEnemies).map(funct
 });};
 
 var renderEnemies = function (enemyArray) {
-  // enemyArray = enemyArray || createEnemies();
   enemies = gameBoard.selectAll('circle.enemy').data(enemyArray, function(d){return d.id;});
   enemies
     .transition()
@@ -57,14 +60,16 @@ enemies.enter()
 
 enemies.exit().remove();
 
-var checkCollision = function (enemy, collidedCallback) {
+var checkCollision = function (enemy) {
   //may need to throw in an each func when we have multiple players
   var player = d3.select('#player');
   var radiusSum = parseFloat(enemy.attr('r')) + parseFloat(player.attr('r'));
   var xDiff = parseFloat(enemy.attr('cx')) - parseFloat(player.attr('cx'));
   var yDiff = parseFloat(enemy.attr('cy')) - parseFloat(player.attr('cy'));
   var separation = Math.sqrt( Math.pow(xDiff,2) + Math.pow(yDiff,2));
-  separation < 20 && console.log(separation, radiusSum);
+  if (separation < radiusSum) {
+    collidedCallback(player, enemy);
+  }
 };
 
 var tweenWithCollisionDetection = function (endData) {
@@ -84,20 +89,40 @@ var tweenWithCollisionDetection = function (endData) {
     };
     enemy.attr('cx', enemyNextPos.x)
       .attr('cy', enemyNextPos.y);
-    checkCollision(enemy, function(){});
+    checkCollision(enemy);
   };
 };
 
-
-
-
-var gameTurn = function () {
-  renderEnemies(createEnemies());
-
+var collidedCallback = function(player, enemy){
+  updateBestScore();
+  gameStats.score = 0;
+  updateScore();
 };
 
-gameTurn();
+var updateScore = function () {
+  d3.select('#current-score')
+    .text(gameStats.score.toString());
+};
 
-setInterval(gameTurn, 2000);
+var updateBestScore = function(){
+  if (gameStats.score > gameStats.bestScore) {
+    gameStats.bestScore = gameStats.score;
+    d3.select('#best-score').text(gameStats.bestScore.toString());
+  }
+};
 
+var play = function () {
+  var gameTurn = function () {
+    renderEnemies(createEnemies());
+  };
+  var increaseScore = function () {
+    gameStats.score += 1;
+    updateScore();
+  };
+  gameTurn();
 
+  setInterval(gameTurn, 2000);
+  setInterval(increaseScore, 100);
+};
+
+play();
