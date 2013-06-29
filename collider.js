@@ -20,7 +20,8 @@ var createEnemies = function(){ return _.range(0,gameOptions.nEnemies).map(funct
   return {id: index, x: Math.random()*100, y: Math.random()*100};
 });};
 
-var render = function (enemyArray) {
+
+var renderEnemies = function (enemyArray) {
   // enemyArray = enemyArray || createEnemies();
   enemies = gameBoard.selectAll('circle.enemy').data(enemyArray, function(d){return d.id;});
   enemies
@@ -32,7 +33,7 @@ var render = function (enemyArray) {
       .tween('custom', tweenWithCollisionDetection);
 };
 
-render(createEnemies());
+renderEnemies(createEnemies());
 
 enemies.enter()
   .append('circle')
@@ -64,9 +65,23 @@ var tweenWithCollisionDetection = function (endData) {
 };
 
 
+var move = d3.behavior.drag()
+  .on('drag', function (d,i) {
+    player.cx.baseVal.valueInSpecifiedUnits += d3.event.dx;
+    player.cy.baseVal.valueInSpecifiedUnits += d3.event.dy;
+  });
+
+gameBoard.append('circle')
+            .attr('id', 'player')
+            .attr('cx', 350)
+            .attr('cy', 225)
+            .attr('r', 10)
+            .attr('fill', 'blue')
+            .call(move);
+
+
 var gameTurn = function () {
-  console.log('gameturn!');
-  render(createEnemies());
+  renderEnemies(createEnemies());
 
 };
 
