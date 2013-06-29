@@ -12,7 +12,7 @@ var axis = {
   y: d3.scale.linear().domain([0,100]).range([0,gameOptions.height])
 };
 
-var gameBoard = d3.select('.container').append('svg:svg')
+var gameBoard = d3.select('.container').append('svg')
                 .attr('width', gameOptions.width)
                 .attr('height', gameOptions.height);
 
@@ -27,10 +27,13 @@ var render = function (gameBoard) {
 render(gameBoard);
 
   enemies.enter()
-    .append('svg:circle')
+    .append('circle')
       .attr('class', 'enemy')
-      .attr('cx', axis.x(this.x))
-      .attr('cy', axis.y(this.y))
+      .attr('cx', function(d){return axis.x(d.x);})
+      .attr('cy', function(d){return axis.y(d.y);})
       .attr('r', 4);
 
   enemies.exit().remove();
+
+
+
